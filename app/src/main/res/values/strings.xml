@@ -10,4 +10,6 @@
       the License.
       -->
     <string name="app_name">AndroidDevChallenge</string>
+
+    <string name="button_play_content_description">Start countdown</string>
 </resources>
