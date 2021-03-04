@@ -24,9 +24,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,7 +45,12 @@ fun MainScreen(
         hours = viewModel.hours,
         minutes = viewModel.minutes,
         seconds = viewModel.seconds,
-        onPlayButtonClicked = viewModel::onPlayButtonClicked
+        isPlayButtonVisible = viewModel.isPlayButtonVisible,
+        isPauseButtonVisible = viewModel.isPauseButtonVisible,
+        isStopButtonVisible = viewModel.isStopButtonVisible,
+        onPlayButtonClicked = viewModel::onPlayButtonClicked,
+        onPauseButtonClicked = viewModel::onPauseButtonClicked,
+        onStopButtonClicked = viewModel::onStopButtonClicked
     )
 }
 
@@ -51,7 +59,12 @@ fun MainContent(
     hours: String,
     minutes: String,
     seconds: String,
-    onPlayButtonClicked: (Int, Int, Int) -> Unit
+    isPlayButtonVisible: Boolean,
+    isPauseButtonVisible: Boolean,
+    isStopButtonVisible: Boolean,
+    onPlayButtonClicked: (Int, Int, Int) -> Unit,
+    onPauseButtonClicked: () -> Unit,
+    onStopButtonClicked: () -> Unit
 ) {
     Column(Modifier.fillMaxSize()) {
         CountDown(
@@ -61,7 +74,15 @@ fun MainContent(
             modifier = Modifier.weight(1f)
         )
         CountDownController(
-            onPlayButtonClicked = onPlayButtonClicked
+            hours = hours,
+            minutes = minutes,
+            seconds = seconds,
+            isPlayButtonVisible = isPlayButtonVisible,
+            isPauseButtonVisible = isPauseButtonVisible,
+            isStopButtonVisible = isStopButtonVisible,
+            onPlayButtonClicked = onPlayButtonClicked,
+            onPauseButtonClicked = onPauseButtonClicked,
+            onStopButtonClicked = onStopButtonClicked
         )
     }
 }
@@ -90,6 +111,7 @@ fun CountDown(
 fun Time(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
+        style = MaterialTheme.typography.h2,
         modifier = modifier
     )
 }
@@ -98,13 +120,22 @@ fun Time(text: String, modifier: Modifier = Modifier) {
 fun Divider(modifier: Modifier = Modifier) {
     Text(
         text = ":",
+        style = MaterialTheme.typography.h2,
         modifier = modifier.padding(start = 8.dp, end = 8.dp)
     )
 }
 
 @Composable
 fun CountDownController(
+    hours: String,
+    minutes: String,
+    seconds: String,
+    isPlayButtonVisible: Boolean,
+    isPauseButtonVisible: Boolean,
+    isStopButtonVisible: Boolean,
     onPlayButtonClicked: (Int, Int, Int) -> Unit,
+    onPauseButtonClicked: () -> Unit,
+    onStopButtonClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -112,19 +143,74 @@ fun CountDownController(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        PlayButton(onClick = onPlayButtonClicked, Modifier.padding(48.dp))
+        val buttonModifier = Modifier.padding(
+            start = 24.dp,
+            end = 24.dp,
+            bottom = 48.dp
+        )
+
+        if (isStopButtonVisible)
+            StopButton(
+                onClick = onStopButtonClicked,
+                modifier = buttonModifier
+            )
+
+        if (isPauseButtonVisible)
+            PauseButton(
+                onClick = onPauseButtonClicked,
+                modifier = buttonModifier
+            )
+
+        if (isPlayButtonVisible)
+            PlayButton(
+                hours = hours,
+                minutes = minutes,
+                seconds = seconds,
+                onClick = onPlayButtonClicked,
+                modifier = buttonModifier
+            )
     }
 }
 
 @Composable
 fun PlayButton(
+    hours: String,
+    minutes: String,
+    seconds: String,
     onClick: (Int, Int, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val second = if (seconds.toInt() == 0) 10 else seconds.toInt()
     CircularIconButton(
-        onClick = { onClick(0, 0, 10) },
+        onClick = { onClick(hours.toInt(), minutes.toInt(), second) },
         icon = Icons.Default.PlayArrow,
         contentDescription = stringResource(id = R.string.button_play_content_description),
+        modifier = modifier
+    )
+}
+
+@Composable
+fun PauseButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    CircularIconButton(
+        onClick = { onClick() },
+        icon = Icons.Default.Pause,
+        contentDescription = stringResource(id = R.string.button_pause_content_description),
+        modifier = modifier
+    )
+}
+
+@Composable
+fun StopButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    CircularIconButton(
+        onClick = { onClick() },
+        icon = Icons.Default.Stop,
+        contentDescription = stringResource(id = R.string.button_stop_content_description),
         modifier = modifier
     )
 }

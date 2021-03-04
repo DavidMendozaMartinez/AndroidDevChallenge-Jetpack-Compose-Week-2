@@ -12,4 +12,6 @@
     <string name="app_name">AndroidDevChallenge</string>
 
     <string name="button_play_content_description">Start countdown</string>
+    <string name="button_pause_content_description">Pause countdown</string>
+    <string name="button_stop_content_description">Stop countdown</string>
 </resources>

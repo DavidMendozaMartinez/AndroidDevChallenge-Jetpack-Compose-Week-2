@@ -19,8 +19,6 @@ import android.os.CountDownTimer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import java.util.concurrent.TimeUnit
 
@@ -33,12 +31,6 @@ class MainViewModel : ViewModel() {
 
     private lateinit var countDownTimer: CountDownTimer
 
-    private val _isPlaying: MutableLiveData<Boolean> = MutableLiveData()
-    private val isPlaying: LiveData<Boolean> get() = _isPlaying
-
-    private val _isFinished: MutableLiveData<Boolean> = MutableLiveData()
-    private val isFinished: LiveData<Boolean> get() = _isFinished
-
     var hours: String by mutableStateOf(TIME_PLACEHOLDER)
         private set
     var minutes: String by mutableStateOf(TIME_PLACEHOLDER)
@@ -46,11 +38,12 @@ class MainViewModel : ViewModel() {
     var seconds: String by mutableStateOf(TIME_PLACEHOLDER)
         private set
 
-    fun onPlayButtonClicked(hours: Int, minutes: Int, seconds: Int) {
-        _isPlaying.value = true
-        val millis = convertTimeToMillis(hours, minutes, seconds)
-        startCountDown(millis)
-    }
+    var isPlayButtonVisible: Boolean by mutableStateOf(true)
+        private set
+    var isPauseButtonVisible: Boolean by mutableStateOf(false)
+        private set
+    var isStopButtonVisible: Boolean by mutableStateOf(false)
+        private set
 
     private fun startCountDown(millis: Long) {
         countDownTimer = object : CountDownTimer(millis, COUNT_DOWN_INTERVAL) {
@@ -61,10 +54,52 @@ class MainViewModel : ViewModel() {
             }
 
             override fun onFinish() {
-                _isPlaying.value = false
-                _isFinished.value = true
+                updateButtonVisibility(CountDownState.STOP)
             }
         }.start()
+    }
+
+    fun onPlayButtonClicked(hours: Int, minutes: Int, seconds: Int) {
+        updateButtonVisibility(CountDownState.PLAY)
+
+        val millis = convertTimeToMillis(hours, minutes, seconds)
+        startCountDown(millis)
+    }
+
+    fun onPauseButtonClicked() {
+        updateButtonVisibility(CountDownState.PAUSE)
+
+        countDownTimer.cancel()
+    }
+
+    fun onStopButtonClicked() {
+        updateButtonVisibility(CountDownState.STOP)
+
+        countDownTimer.cancel()
+
+        hours = TIME_PLACEHOLDER
+        minutes = TIME_PLACEHOLDER
+        seconds = TIME_PLACEHOLDER
+    }
+
+    private fun updateButtonVisibility(state: CountDownState) {
+        when (state) {
+            CountDownState.PLAY -> {
+                isPlayButtonVisible = false
+                isPauseButtonVisible = true
+                isStopButtonVisible = true
+            }
+            CountDownState.PAUSE -> {
+                isPlayButtonVisible = true
+                isPauseButtonVisible = false
+                isStopButtonVisible = true
+            }
+            CountDownState.STOP -> {
+                isPlayButtonVisible = true
+                isPauseButtonVisible = false
+                isStopButtonVisible = false
+            }
+        }
     }
 
     private fun formatTime(millis: Long, convert: (Long) -> Long) =
