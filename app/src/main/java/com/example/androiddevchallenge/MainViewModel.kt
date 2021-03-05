@@ -38,6 +38,9 @@ class MainViewModel : ViewModel() {
     var seconds: String by mutableStateOf(TIME_PLACEHOLDER)
         private set
 
+    var isEditStateEnabled: Boolean by mutableStateOf(true)
+        private set
+
     var isPlayButtonVisible: Boolean by mutableStateOf(true)
         private set
     var isPauseButtonVisible: Boolean by mutableStateOf(false)
@@ -48,33 +51,35 @@ class MainViewModel : ViewModel() {
     private fun startCountDown(millis: Long) {
         countDownTimer = object : CountDownTimer(millis, COUNT_DOWN_INTERVAL) {
             override fun onTick(millisUntilFinished: Long) {
-                hours = formatTime(millisUntilFinished, TimeUnit.MILLISECONDS::toHours)
-                minutes = formatTime(millisUntilFinished, TimeUnit.MILLISECONDS::toMinutes)
-                seconds = formatTime(millisUntilFinished, TimeUnit.MILLISECONDS::toSeconds)
+                hours = formatTime(getHours(millisUntilFinished))
+                minutes = formatTime(getMinutes(millisUntilFinished))
+                seconds = formatTime(getSeconds(millisUntilFinished))
             }
 
             override fun onFinish() {
-                updateButtonVisibility(CountDownState.STOP)
+                updateViewState(CountDownState.STOP)
             }
         }.start()
     }
 
-    fun onPlayButtonClicked(hours: Int, minutes: Int, seconds: Int) {
-        updateButtonVisibility(CountDownState.PLAY)
+    fun onPlayButtonClick() {
+        updateViewState(CountDownState.PLAY)
 
-        val millis = convertTimeToMillis(hours, minutes, seconds)
+        val millis = convertTimeToMillis(
+            hours.toIntOrNull() ?: 0,
+            minutes.toIntOrNull() ?: 0,
+            seconds.toIntOrNull() ?: 0
+        )
         startCountDown(millis)
     }
 
-    fun onPauseButtonClicked() {
-        updateButtonVisibility(CountDownState.PAUSE)
-
+    fun onPauseButtonClick() {
+        updateViewState(CountDownState.PAUSE)
         countDownTimer.cancel()
     }
 
-    fun onStopButtonClicked() {
-        updateButtonVisibility(CountDownState.STOP)
-
+    fun onStopButtonClick() {
+        updateViewState(CountDownState.STOP)
         countDownTimer.cancel()
 
         hours = TIME_PLACEHOLDER
@@ -82,28 +87,80 @@ class MainViewModel : ViewModel() {
         seconds = TIME_PLACEHOLDER
     }
 
-    private fun updateButtonVisibility(state: CountDownState) {
+    fun onHoursValueChange(value: String) {
+        hours = getValidInput(value, 99)
+    }
+
+    fun onMinutesValueChange(value: String) {
+        minutes = getValidInput(value, 59)
+    }
+
+    fun onSecondsValueChange(value: String) {
+        seconds = getValidInput(value, 59)
+    }
+
+    fun onHoursFocused() {
+        hours = ""
+    }
+
+    fun onMinutesFocused() {
+        minutes = ""
+    }
+
+    fun onSecondsFocused() {
+        seconds = ""
+    }
+
+    fun onEditDone() {
+        hours = if (hours.isNotEmpty()) formatTime(hours.toLong()) else TIME_PLACEHOLDER
+        minutes = if (minutes.isNotEmpty()) formatTime(minutes.toLong()) else TIME_PLACEHOLDER
+        seconds = if (seconds.isNotEmpty()) formatTime(seconds.toLong()) else TIME_PLACEHOLDER
+    }
+
+    private fun getValidInput(value: String, max: Int): String {
+        return value
+            .replace("\\D".toRegex(), "")
+            .takeLast(2)
+            .toIntOrNull()?.run {
+                coerceIn(0..max).toString()
+            } ?: ""
+    }
+
+    private fun updateViewState(state: CountDownState) {
         when (state) {
             CountDownState.PLAY -> {
                 isPlayButtonVisible = false
                 isPauseButtonVisible = true
                 isStopButtonVisible = true
+                isEditStateEnabled = false
             }
             CountDownState.PAUSE -> {
                 isPlayButtonVisible = true
                 isPauseButtonVisible = false
                 isStopButtonVisible = true
+                isEditStateEnabled = true
             }
             CountDownState.STOP -> {
                 isPlayButtonVisible = true
                 isPauseButtonVisible = false
                 isStopButtonVisible = false
+                isEditStateEnabled = true
             }
         }
     }
 
-    private fun formatTime(millis: Long, convert: (Long) -> Long) =
-        String.format(TIME_FORMAT, convert(millis))
+    private fun getHours(millis: Long): Long =
+        TimeUnit.MILLISECONDS.toHours(millis)
+
+    private fun getMinutes(millis: Long): Long =
+        TimeUnit.MILLISECONDS.toMinutes(millis)
+            .minus(TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)))
+
+    private fun getSeconds(millis: Long) =
+        TimeUnit.MILLISECONDS.toSeconds(millis)
+            .minus(TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)))
+
+    private fun formatTime(time: Long) = String.format(TIME_FORMAT, time)
 
     private fun convertTimeToMillis(hours: Int, minutes: Int, seconds: Int): Long =
         TimeUnit.HOURS.toMillis(hours.toLong())

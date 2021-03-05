@@ -54,12 +54,20 @@ fun LightPreview() {
                 hours = "00",
                 minutes = "00",
                 seconds = "00",
+                isEditStateEnabled = false,
                 isPlayButtonVisible = true,
                 isPauseButtonVisible = false,
                 isStopButtonVisible = false,
-                onPlayButtonClicked = { _, _, _ -> },
-                onPauseButtonClicked = {},
-                onStopButtonClicked = {}
+                onHoursValueChange = {},
+                onMinutesValueChange = {},
+                onSecondsValueChange = {},
+                onHoursFocused = {},
+                onMinutesFocused = {},
+                onSecondsFocused = {},
+                onEditDone = {},
+                onPlayButtonClick = {},
+                onPauseButtonClick = {},
+                onStopButtonClick = {}
             )
         }
     }
@@ -74,12 +82,20 @@ fun DarkPreview() {
                 hours = "00",
                 minutes = "00",
                 seconds = "00",
+                isEditStateEnabled = false,
                 isPlayButtonVisible = true,
                 isPauseButtonVisible = false,
                 isStopButtonVisible = false,
-                onPlayButtonClicked = { _, _, _ -> },
-                onPauseButtonClicked = {},
-                onStopButtonClicked = {}
+                onHoursValueChange = {},
+                onMinutesValueChange = {},
+                onSecondsValueChange = {},
+                onHoursFocused = {},
+                onMinutesFocused = {},
+                onSecondsFocused = {},
+                onEditDone = {},
+                onPlayButtonClick = {},
+                onPauseButtonClick = {},
+                onStopButtonClick = {}
             )
         }
     }

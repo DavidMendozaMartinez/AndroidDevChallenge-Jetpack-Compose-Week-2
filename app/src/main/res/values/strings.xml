@@ -11,6 +11,10 @@
       -->
     <string name="app_name">AndroidDevChallenge</string>
 
+    <string name="label_hours">Hours</string>
+    <string name="label_minutes">Minutes</string>
+    <string name="label_seconds">Seconds</string>
+
     <string name="button_play_content_description">Start countdown</string>
     <string name="button_pause_content_description">Pause countdown</string>
     <string name="button_stop_content_description">Stop countdown</string>
