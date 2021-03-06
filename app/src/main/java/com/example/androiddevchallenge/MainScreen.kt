@@ -15,6 +15,8 @@
  */
 package com.example.androiddevchallenge
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,8 +36,10 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
@@ -55,6 +59,7 @@ fun MainScreen(viewModel: MainViewModel) {
         isPlayButtonVisible = viewModel.isPlayButtonVisible,
         isPauseButtonVisible = viewModel.isPauseButtonVisible,
         isStopButtonVisible = viewModel.isStopButtonVisible,
+        isEnding = viewModel.isEnding,
         onHoursValueChange = viewModel::onHoursValueChange,
         onMinutesValueChange = viewModel::onMinutesValueChange,
         onSecondsValueChange = viewModel::onSecondsValueChange,
@@ -77,6 +82,7 @@ fun MainContent(
     isPlayButtonVisible: Boolean,
     isPauseButtonVisible: Boolean,
     isStopButtonVisible: Boolean,
+    isEnding: Boolean,
     onHoursValueChange: (String) -> Unit,
     onMinutesValueChange: (String) -> Unit,
     onSecondsValueChange: (String) -> Unit,
@@ -107,6 +113,7 @@ fun MainContent(
             isPlayButtonVisible = isPlayButtonVisible,
             isPauseButtonVisible = isPauseButtonVisible,
             isStopButtonVisible = isStopButtonVisible,
+            isEnding = isEnding,
             onPlayButtonClick = onPlayButtonClick,
             onPauseButtonClick = onPauseButtonClick,
             onStopButtonClick = onStopButtonClick
@@ -230,6 +237,7 @@ fun CountDownController(
     isPlayButtonVisible: Boolean,
     isPauseButtonVisible: Boolean,
     isStopButtonVisible: Boolean,
+    isEnding: Boolean,
     onPlayButtonClick: () -> Unit,
     onPauseButtonClick: () -> Unit,
     onStopButtonClick: () -> Unit,
@@ -240,6 +248,12 @@ fun CountDownController(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val alpha by animateFloatAsState(
+            if (isEnding) 0F else 1.0F,
+            animationSpec = tween(
+                durationMillis = MainViewModel.ENDING_ANIMATION_DURATION
+            )
+        )
         val buttonModifier = Modifier.padding(
             start = 24.dp,
             end = 24.dp,
@@ -249,12 +263,14 @@ fun CountDownController(
         if (isStopButtonVisible)
             StopButton(
                 onClick = onStopButtonClick,
+                alpha = alpha,
                 modifier = buttonModifier
             )
 
         if (isPauseButtonVisible)
             PauseButton(
                 onClick = onPauseButtonClick,
+                alpha = alpha,
                 modifier = buttonModifier
             )
 
@@ -285,11 +301,12 @@ fun PlayButton(
 @Composable
 fun PauseButton(
     onClick: () -> Unit,
+    alpha: Float,
     modifier: Modifier = Modifier
 ) {
     FloatingActionButton(
         onClick = { onClick() },
-        modifier = modifier
+        modifier = modifier.alpha(alpha)
     ) {
         Icon(
             imageVector = Icons.Default.Pause,
@@ -301,11 +318,12 @@ fun PauseButton(
 @Composable
 fun StopButton(
     onClick: () -> Unit,
+    alpha: Float,
     modifier: Modifier = Modifier
 ) {
     FloatingActionButton(
         onClick = { onClick() },
-        modifier = modifier
+        modifier = modifier.alpha(alpha)
     ) {
         Icon(
             imageVector = Icons.Default.Stop,

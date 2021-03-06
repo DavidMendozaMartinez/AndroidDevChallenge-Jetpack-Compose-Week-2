@@ -26,6 +26,7 @@ class MainViewModel : ViewModel() {
     companion object {
         const val TIME_FORMAT: String = "%02d"
         val COUNT_DOWN_INTERVAL: Long = TimeUnit.SECONDS.toMillis(1)
+        val ENDING_ANIMATION_DURATION = TimeUnit.SECONDS.toMillis(2).toInt()
         val TIME_PLACEHOLDER: String = String.format(TIME_FORMAT, 0)
     }
 
@@ -48,19 +49,8 @@ class MainViewModel : ViewModel() {
     var isStopButtonVisible: Boolean by mutableStateOf(false)
         private set
 
-    private fun startCountDown(millis: Long) {
-        countDownTimer = object : CountDownTimer(millis, COUNT_DOWN_INTERVAL) {
-            override fun onTick(millisUntilFinished: Long) {
-                hours = formatTime(getHours(millisUntilFinished))
-                minutes = formatTime(getMinutes(millisUntilFinished))
-                seconds = formatTime(getSeconds(millisUntilFinished))
-            }
-
-            override fun onFinish() {
-                updateViewState(CountDownState.STOP)
-            }
-        }.start()
-    }
+    var isEnding: Boolean by mutableStateOf(false)
+        private set
 
     fun onPlayButtonClick() {
         updateViewState(CountDownState.PLAY)
@@ -117,13 +107,19 @@ class MainViewModel : ViewModel() {
         seconds = if (seconds.isNotEmpty()) formatTime(seconds.toLong()) else TIME_PLACEHOLDER
     }
 
-    private fun getValidInput(value: String, max: Int): String {
-        return value
-            .replace("\\D".toRegex(), "")
-            .takeLast(2)
-            .toIntOrNull()?.run {
-                coerceIn(0..max).toString()
-            } ?: ""
+    private fun startCountDown(millis: Long) {
+        countDownTimer = object : CountDownTimer(millis, COUNT_DOWN_INTERVAL) {
+            override fun onTick(millisUntilFinished: Long) {
+                hours = formatTime(getHours(millisUntilFinished))
+                minutes = formatTime(getMinutes(millisUntilFinished))
+                seconds = formatTime(getSeconds(millisUntilFinished))
+                isEnding = millisUntilFinished <= ENDING_ANIMATION_DURATION
+            }
+
+            override fun onFinish() {
+                updateViewState(CountDownState.STOP)
+            }
+        }.start()
     }
 
     private fun updateViewState(state: CountDownState) {
@@ -147,6 +143,15 @@ class MainViewModel : ViewModel() {
                 isEditStateEnabled = true
             }
         }
+    }
+
+    private fun getValidInput(value: String, max: Int): String {
+        return value
+            .replace("\\D".toRegex(), "")
+            .takeLast(2)
+            .toIntOrNull()?.run {
+                coerceIn(0..max).toString()
+            } ?: ""
     }
 
     private fun getHours(millis: Long): Long =
